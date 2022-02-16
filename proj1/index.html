@@ -1,7 +1,292 @@
-<html>
+<html xmlns="http://www.w3.org/1999/html" xmlns="http://www.w3.org/1999/html">
 	<head>
+		<style>
+			table {
+				font-family: arial, sans-serif;
+				border-collapse: collapse;
+				width: 100%;
+			}
+
+			td, th {
+				border: 1px solid #dddddd;
+				text-align: left;
+				padding: 8px;
+			}
+
+			tr:nth-child(even) {
+				background-color: #dddddd;
+			}
+		</style>
 	</head>
+
+
+	<h2>Overview</h2>
+	<p1> </p1>
+	<h2>Task 1</h2>
+	<table>
+		<tr>
+			<th>Name</th>
+			<th>Parameters</th>
+			<th>Function</th>
+			<th>Return</th>
+
+		</tr>
+		<tr>
+			<td>rasterize_triangle</td>
+			<td>float x0, float y0, float x1, float y1, float x2, float y2, Color color</td>
+			<td>rasterizes triangle with methodology mentioned below</td>
+			<td>none</td>
+		</tr>
+		<tr>
+			<td>inside</td>
+			<td>float x0, float y0, float x1, float y1, float x2, float y2, float xSmp, float ySmp</td>
+			<td>calcuates line for our line test, lets us know if point is within the triangle</td>
+			<td>bool if in triangle</td>
+		</tr>
+	</table>
+	<p1> To rasterize triangles, given the 3 vertices of the triangle A, B, and C, we used the point-in triangle test. </p1>
+	<ol>
+		<img src="./images/q1_bounding.jpg" width="300">
+		<li>When we rasterize our triangle in rasterize_triangle, to avoid having to iterate over the whole image every time we rendered a triangle.
+			We create a “bounding box” by computing the maximum and minimum values of our x and y values in A, B, and C.
+			Thus, creating a ymax, xmax, ymin, and xmin. These max and min coordinates create a box that will contain all possible values of the triangle.
+			We can iterate through the said box to get a shorter runtime.</li>
+		<img src="./images/p1_baselines.jpg" width="300">
+		<li>We derived the equation for 3 lines - a line going from point A to B, a line going
+			from B to C, and a line going from C to A.</li>
+
+		<img src="./images/q1_ab.jpg" style="float: left; width: 32%; margin-right: 1%; margin-bottom: 0.5em;">
+		<img src="./images/q1_bc.jpg" style="float: left; width: 32%; margin-right: 1%; margin-bottom: 0.5em;">
+		<img src="./images/q1_ca.jpg" style="float: left; width: 32%; margin-right: 1%; margin-bottom: 0.5em;">
+		</br>
+		<li>From there, we performed the line equation test for a given range of x and y coordinates.
+			To make sure that rasterizing the triangle would work regardless of the winding order of the points provided, we filled the pixel as long as the
+			point (x_i, y_i) satisfied the line equations of A to B, B to C, and C to A or the line equations of A to C, C to B, and B to A.</li>
+		<img src="./images/q1_dot.jpg" style="float: left; width: 32.4%; margin-right: 1%; margin-bottom: 0.5em;">
+		<img src="./images/q1_halfrast.jpg" style="float: left; width: 32.3%; margin-right: 1%; margin-bottom: 0.5em;">
+		<img src="./images/q1_rast.jpg" style="float: left; width: 32.3%; margin-right: 1%; margin-bottom: 0.5em;">
+		</br>
+
+		<li>If sampling at the center of a given (x_i, y_i) pixel returned a number greater than or equal to 0 for all 3 line equations, it meant
+			the point was inside the triangle, and we would fill that pixel.</li>
+	</ol>
+	<img src="./images/q1_drra.png" width="600">
+
+	<h2>Task 2</h2>
+	<table>
+		<tr>
+			<th>Name</th>
+			<th>Parameters</th>
+			<th>Function</th>
+			<th>Return</th>
+
+		</tr>
+		<tr>
+			<td>rasterize_triangle</td>
+			<td>float x0, float y0, float x1, float y1, float x2, float y2, Color color</td>
+			<td>Rasterize triangle onto a sample buffer that is width * sqrt(sample_rate) x height * sqrt(sample_rate)</td>
+			<td>none</td>
+		</tr>
+		<tr>
+			<td>fill_pixel</td>
+			<td>size_t x, size_t y, Color c, bool tri = false</td>
+			<td>renders lines normally and renders triangles with supersampling in mind</td>
+			<td>none</td>
+		</tr>
+		<tr>
+			<td>set_sample_rate</td>
+			<td>unsigned int rate</td>
+			<td>assigns the shared sample rate with the passed in parameter</td>
+			<td>none</td>
+		</tr>
+		<tr>
+			<td>set_framebuffer_target</td>
+			<td>unsigned char* rgb_framebuffer, size_t width, size_t height</td>
+			<td>Resizes the framebuffer to be * sample_rate</td>
+			<td>none</td>
+		</tr>
+		<tr>
+			<td>resolve_to_framebuffe</td>
+			<td>none</td>
+			<td>Take averages of sqrt(sample_rate) x sqrt(sample_rate) groups from sample buffer and renders them and a 1x1 pixel in the frame buffer</td>
+			<td>none</td>
+		</tr>
+	</table>
+	<p1> For our implementation we created a variable sample_smol that was equal to the square root of the sample rate. </p1>
+	<ol>
+		<img src="./images/q2_box.jpg" width="300">
+		<li>Within rasterize, the triangle created a sample buffer that was width*sample_smol x height*sample_smol.
+			We also multiplied the x0, y0, x1, y2, x2, and y2 values with sample_smol.
+			That resulted in the triangle scaling being proportional to the sample buffer.
+			Doing this will help us supersample and have a better resolution.</li>
+		<img src="./images/q2_line_dimension.jpg" width="300">
+		<li>We repeat the same steps as part 1 but within our sample buffer.</li>
+
+		<img src="./images/q2_rendpro.jpg" width="300">
+		<li>After the triangle is rasterized, in resolve_to_framebuffer we iterate through the sample buffer by sample_smol.  Since the sample buffer is  (width * sample_smol) x (height * sample smol), we know we can take the average color of sample_smol x sample_smol pixel chunks to one pixel.
+			After we iterate through said chunk, we take the average color value and put it into the frame buffer.
+			Iterating until we go through our bounding square...</li>
+		<img src="./images/q2_rend.jpg" width="300">
+		<li>After iterating through the sample buffer the frame buffer is filled with the corresponding averaged values from the sample buffer.</li>
+	</ol>
+	<ul>
+		<img src="./images/q2_1.png" style="float: left; width: 25%; margin-right: 0%; margin-bottom: 0.5em;">
+		<img src="./images/q2_4.png" style="float: left; width: 25%; margin-right: 0%; margin-bottom: 0.5em;">
+		<img src="./images/q2_9.png" style="float: left; width: 25%; margin-right: 0%; margin-bottom: 0.5em;">
+		<img src="./images/q2_16.png" style="float: left; width: 25%; margin-right: 0%; margin-bottom: 0.5em;">
+		<li>render of all rates</li>
+	</ul>
+
+	<h2>Task 3</h2>
+	<table>
+		<tr>
+			<th>Name</th>
+			<th>Parameters</th>
+			<th>Function</th>
+			<th>Return</th>
+
+		</tr>
+		<tr>
+			<td>translate</td>
+			<td>float dx, float dy</td>
+			<td>returns the translation matrix for the given dx, dy</td>
+			<td>Matrix3x3</td>
+		</tr>
+		<tr>
+			<td>scale</td>
+			<td>float sx, float sy</td>
+			<td>returns the scaling matrix for the given sx, sy</td>
+			<td>Matrix3x3</td>
+		</tr>
+		<tr>
+			<td>rotate</td>
+			<td>float deg</td>
+			<td>returns the rotation matrix for the given degrees</td>
+			<td>Matrix3x3</td>
+		</tr>
+	</table>
+	<p1> We tried to make the cubeman look like it’s running. For the outer polygon of the left arm, we translated the points down lower on the screen.
+		For the inner polygon of the left arm, we changed the points so that the rectangle was at a slant.
+		For the right arm and right leg, we also changed the points of the polygons so that the rectangle was at the slant we wanted.
+		For the left leg, we changed the points of the polygon, so that the bottom rectangle was translated to the left and the top rectangle was at a slant.</p1>
+
+	<img src="./images/my_robot.png" style="float: left; width: 25%; margin-right: 0%; margin-bottom: 0.5em;">
+	<img src="./images/robot.png" style="float: left; width: 25%; margin-right: 0%; margin-bottom: 0.5em;">
+	<br>
+	<br/>
+
+
+	<h2>Task 4</h2>
+	<table>
+		<tr>
+			<th>Name</th>
+			<th>Parameters</th>
+			<th>Function</th>
+			<th>Return</th>
+
+		</tr>
+		<tr>
+			<td>rasterize_interpolated_color_triangle</td>
+			<td>float x0, float y0, Color c0, float x1, float y1, Color c1, float x2, float y2, Color c2</td>
+			<td>rasterize a triangle with colors defined at its vertices and interpolated across thee triangle using barycentric interpolation</td>
+			<td>None</td>
+		</tr>
+		<tr>
+			<td>inside_color</td>
+			<td>float x0, float y0, Color c0, float x1, float y1, Color c1, float x2, float y2, Color c2, float xSmp, float ySmp</td>
+			<td>If (xSmp, ySmp) lies inside the triangle with vertices (x0, y0), (x1, y1), and (x2, y2), return the color of the point using barycentric interpolation. Otherwise, return Color.white.</td>
+			<td>Color</td>
+		</tr>
+		<tr>
+			<td>fill_pixel</td>
+			<td>size_t x, size_t y, Color c, bool tri</td>
+			<td>Fill the point (x, y) with color c.</td>
+			<td>None</td>
+		</tr>
+
+	</table>
+	<p1> </p1>
+	<ol>
+		<img src="./images/triangle_ex.png" width="300">
+		<li>Barycentric coordinates are used to express any point in a triangle using 3 scalars - &alpha;, &beta;, &gamma;.If we label the 3 vertices on the triangle P1(x1, y1), P2(x2, y2), and P3(x3, y3), then any point inside of this triangle can be expressed using the vertices of the triangle and barycentric coordinates.
+		</li>
+		<img src="./images/bc_eqn.png" width="300">
+		<li>The equations to calculate the 3 scalars are: above. Where x and y are the coordinates of the point we are checking. If &alpha; + &beta; + &gamma; = 1, 0 <= &alpha; <= 1, 0 <= &beta; <= 1, and 0 <= &gamma; <= 1, then the point x and y is in the triangle (for example (x_i, y_i). Otherwise if the conditions aren’t met (for example the barycentric coordinates of (x_j, y_j), the point is not in the triangle. Since (x_i, y_i) is in the triangle, we can use its corresponding barycentric coordinates and the vertices of the triangle to express itself: x_i = (&alpha;_i * x1) + (&beta;_i * x2) + (&gamma;_i * x3) and y_i = (&alpha;_i * y1) + (&beta;_i * y2) + (&gamma;_i * y3). This is useful when points on a triangle are associated with additional information such as color.</li>
+
+		<img src="./images/color_triangle.png" width="300">
+		<li>In the example above, each of the vertices of the triangle are each associated with a color. P1 is a red vertex with a color v_1 = rgb value of (1, 0, 0). P2 is a blue vertex with a color v_2 = rgb value of (0, 0, 1). P3 is a green vertex with a color v_3 = rgb value of (0, 1, 0). Since (x_k, y_k) is a point inside the triangle, we can get that point’s color v_k using its barycentric coordinates where v_k = (&alpha;_k * v_1) + (&beta;_k * v_2) + (&gamma;_k * v_3). That mean’s point k has a rgb value of ((&alpha;_k * r_0) + (&beta;_k * r_1) + (𝝲_k * r_2), (&alpha;_k * b_0) + (&beta;_k * b_1) + (&gamma;_k * b_2), (&alpha;_k * g_0) + (&beta;_k * g_1) + (&gamma;_k * g_2)).
+		</li>
+	</ol>
+	<p1>svg/basic/test7.svg:</p1>
+	<img src="./images/test7.svg.png" width="300">
+
+	<h2>Task 5</h2>
+	<ol>
+		<img src="./images/triangle_ex.png" width="300">
+		<li>Pixel sampling is taking pixel values from an existing image (input) and mapping it to an
+			output to create a new image. We used pixel sampling to perform texture mapping. We were given a
+			triangle in screen space - with vertices (x0, y0), (x1, y1), (x2, y2)- and a triangle in texture space - with
+			vertices (u0, v0), (u1, v1), (u2, v2).</li>
+		<img src="./images/q2_line_dimension.jpg" width="300">
+		<li>We iterated through a range of x and y coordinates, and used barycentric interpolation like in task 4
+			to determine if the specific point (x_i, y_i) was in the triangle in screen space. If it was, then we
+			used the scalars 𝝰_i, 𝝱_i, 𝝲_i to sample the corresponding point in texture space. We derived the corresponding
+			u,v coordinates by using u_i = (𝝰_i * u1) + (𝝱_i * u2) + (𝝲_i * u3) and v_i = (𝝰_i * v1) + (𝝱_i * v2) + (𝝲_i * v3).</li>
+
+		<img src="./images/q2_rendpro.jpg" width="300">
+		<li>Depending on the specified pixel sampling method, we either used the nearest sampling method or bilinear
+			sampling method to get the color c of the texel (u_i, v_i) and filled the pixel (x_i, y_i) with color c in screen space. </li>
+		<li>Using the existing image in texture space, we created a new, corresponding image in screen space. When using
+			the nearest sampling method, we returned the color of the texel (u_i, v_i) was closest to. When using the
+			bilinear sampling method, we found the 4 texels that (u_i, v_i) was closest to and applied linear interpolation
+			to get the final texel (u_f, v_f) and returned it’s color value.</li>
+	</ol>
+	<img src="./images/bilinear_interp.png" width="300">
+	<p1> example where bilinear sampling clearly defeats nearest sampling</p1>
+	<ul>
+		<img src="./images/bilinear1.png" style="float: left; width: 32%; margin-right: 1%; margin-bottom: 0.5em;">
+		<img src="./images/bilinear16.png" style="float: left; width: 32%; margin-right: 1%; margin-bottom: 0.5em;">
+		<img src="./images/nearest1.png" style="float: left; width: 32%; margin-right: 1%; margin-bottom: 0.5em;">
+		<img src="./images/nearest16.png" style="float: left; width: 32%; margin-right: 1%; margin-bottom: 0.5em;">
+		<li>At 1 sample per pixel, the bilinear sampling tends to be a little more blurred while the nearest sampling
+			tends to be a little more jagged. At the 16 sample per pixel, the differences between the bilinear and nearest
+			sampling methods is not as obvious, but in test1.svg, both sampling methods at the 16 sample per pixel have a
+			more detailed image than the 1 sample per pixel. At the 16 sample per pixel, both sampling methods don’t have
+			the gaps in the white line markings on the maps.</li>
+		<li>There will be a big difference between the 2 sampling methods when the image being sampled requires a more
+			smooth and continuous transition. The nearest sampling method will result in a more rigid and jagged outline,
+			while the bilinear sampling method will have a more blurred result because it is taking the weighted average
+			of the 4 nearest points.</li>
+		<br>
+		<br>
+
+	</ul>
+	<br>
+
+	<h2>Task 6</h2>
+	<p1> </p1>
+	<ol>
+		<li> Level sampling is similar to pixel sampling where we get the pixel values from an existing image and map it to an output to create a new image except we can also sample these pixel values at different levels or different image resolutions. If we choose to sample at a lower level, we would take the existing textured image and down sample it. Depending on the level we want to sample from, we will recursively downsample and store the image at successively lower resolutions. When implementing level sampling, we had 3 different options to choose from: L_ZERO, L_NEAREST, L_LINEAR. When the level sample method is toggled at L_ZERO, we are sampling at level 0 which is just sampling at the original image resolution. When L_NEAREST is toggled, we calculated the nearest level to be sampled at and got that corresponding level’s image from the mipmap variable. Then, we continued to sample as usual just at a lower resolution image. When L_LINEAR was toggled, we first found the nearest level to be sampled at. If level was a whole number, we just returned the color of the texel being sampled. if it wasn’t a whole number, we found the color of the texel at ceiling of level and floor of level and returned the weighted average of the two colors.</li>
+		<li>lsm == L_ZERO: We are sampling at level 0, which is like sampling the image at the original resolution.</li>
+		<li>lsm == L_NEAREST: We are downsampling the image recursively and we access the downsampled image by getting the mipmap of the level we are sampling from. From there, we can sample using the nearest or bilinear interpolation method depending on which one is toggled.</li>
+		<li>lsm == L_LINEAR: since we want to have the mipmap be continuous we calculated the level, ceiling level, and floor level. If all of them are equal we return the levels color values because calculating a weighted sum would result in 0’s, an all black screen. </li>
+		<li>L_LINEAR is the best for antialiasing power. For example, if we had a picture with an image that requires more detail (closer up) and another image that requires less detail (further back), sampling at level 0 will result in aliasing of the image that requires less detail; sampling at level 0 results in too high of a resolution for an image that doesn’t require much detail. However, if we sample at a higher level, the image that requires less detail will be good but the image that requires more detail will have aliasing because it is now being sampled from a lower resolution image. Since L_LINEAR is sampling at different levels and taking the weighted sum, it has more antialiasing power. L_ZERO is the best for memory usage because it is sampling from the original image. L_NEAREST and L_LINEAR sample at different levels meaning the texture image of different levels all need to be saved somewhere. L_NEAREST is the best for speed because it is sampling from lower resolution images. L_ZERO is sampling from the original resolution image, while L_LINEAR involves sampling at 2 different levels.
+		</li>
+	</ol>
+	<ul>
+		<img src="./images/Lnearest_Plinear.png" style="float: left; width: 30%; margin-right: 0%; margin-bottom: 0.5em;">
+		<img src="./images/Lnearest-Pnearest.png" style="float: left; width: 30%; margin-right: 0%; margin-bottom: 0.5em;">
+		<img src="./images/Lzero-Plinear.png" style="float: left; width: 30%; margin-right: 0%; margin-bottom: 0.5em;">
+		<img src="./images/Lzero-Pnearest.png" style="float: left; width: 30%; margin-right: 0%; margin-bottom: 0.5em;">
+		<br>
+
+	</ul>
+
+
+
+
+
 	<body>
-		Project 1 here
+
 	</body>
 </html>
