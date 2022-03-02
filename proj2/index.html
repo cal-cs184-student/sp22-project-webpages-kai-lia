@@ -1,7 +1,400 @@
-<html>
-	<head>
-	</head>
-	<body>
-		Project 2 here
-	</body>
+<html xmlns="http://www.w3.org/1999/html" xmlns="http://www.w3.org/1999/html" xmlns="http://www.w3.org/1999/html">
+<head>
+	<style>
+		table {
+			font-family: arial, sans-serif;
+			border-collapse: collapse;
+			width: 100%;
+		}
+
+		td, th {
+			border: 1px solid #dddddd;
+			text-align: left;
+			padding: 8px;
+		}
+
+		tr:nth-child(even) {
+			background-color: #dddddd;
+		}
+	</style>
+</head>
+
+<h2>Overview</h2>
+<p1> Within this project, we went through the basics of modeling. The fundamental building blocks of modeling are built through basic linear equations since essentially modeling is transforming and manipulating points to different dimensional spaces. Within part 1 we explore this in Casteljau's algorithm by finding the curves of rather stagnant and blocky points, letting us interpret potential transformations. Within part 2 we apply this idea even further by using Casteljau's algorithm with Beziers surfaces to allow us to manipulate and interpret points in the 3rd dimension. In part 3 we used our understanding of weighted area normals from Phongs shading to smooth over our models. In later sections, we dove into particulars of triangle mesh geometry & transformations allowing us to have more manipulative control over our models.  In part 4, part 5, we implemented flipping and splitting edges for future remeshing. In part 6 we utilized past parts of flipping and splitting to allow us to make our meshes have better resolution and display properties.</p1>
+
+<h2>Task 1</h2>
+<p1>For Part 1, we utilized Casteljau algorithm which in essence, linearly interpolates with recursive subdivision. On
+	our passed in vector, t applies linear interpolation to all immediate neighbor pairs. Once the lerp is calculated for
+	these pairs we will return the new vector<\Vector2D> which will be the size of the previous vector minus one. We will
+		recurse and once again on the new vector and apply our previous methodology with the new points. This recursive
+		algorithm is continued until it hits the base case of the vector<\Vector2D> size is 1, indicating our control
+			point has been found.
+</p1>
+<br>
+<img src="./images/q1-00.png" style="float: left; width: 50%; margin-right: 0%;">
+<img src="./images/q1-01.png" style="float: left; width: 50%; margin-right: 0%;">
+<img src="./images/q1-02.png" style="float: left; width: 50%; margin-right: 0%;">
+<img src="./images/q1-03.png" style="float: left; width: 50%; margin-right: 0%;">
+<img src="./images/q1-05.png" style="float: right; width: 50%; margin-right: 0%;">
+<img src="./images/q1-04.png" style="float: right; width: 50%; margin-right: 0%;">
+
+
+<h2>Task 2</h2>
+<p1> We can use the de Casteljau algorithm along both axes of the Bezier surface to evaluate the surface point. We apply
+	the de Casteljau algorithm on different parts of the surface and with the resulting points, apply it to the algorithm
+	to get one final point.</p1>
+<img src="./images/q2.png" style="float: right; width: 80%; margin-right: 10%; margin-left: 10%">
+<p1>In this case, we continuously take slices of the Bezier surface in the u-axis direction and apply it to the de
+	Casteljau algorithm. After going through the slices/Bezier curves, we get a series of points roughly in line along
+	the v-axis called the “moving” bezier curve. From there, we apply the de Casteljau algorithm one more time and get
+	the final surface point (u,v).
+</p1>
+<img src="./images/q2.png" style="float: right; width: 80%; margin-right: 10%; margin-left: 10%">
+
+
+<h2>Task 3</h2>
+<ul>
+	<li>to compute an area-weighted normal at a given vertex, you should use half-edge data structure to iterate thru
+		faces incident to vertex</li>
+	<ul>
+		<li>for each face, weight its normal by its area and then normalize the sum of all area-weighted normals</li>
+	</ul>
+	<li>Vertex object: encapsulates a single mesh vertex and has following member variables:</li>
+	<ul>
+		<li>Vector3D position: 3D coordinate of this vertex</li>
+		<li>HalfedgeIter &halfedge: reference to half-edge rooted at this vertex</li>
+		<li>HalfedgeIter halfedge: same as half-edge above but this variable is constant</li>
+	</ul>
+	<li>Vertex::normal() -> the area-weighted vertex normal</li>
+	<ul>
+		<li>access to class member variables such as Vector3D position</li>
+	</ul>
+	<li>To implement the area-weighted vertex normals we traversed the faces via the half edges of the teapot. As we
+		traversed, we added the face’s normal area which was computed by getting the cross products of its vertices. If
+		we reached a boundary we skipped over it since it would lead off of the edge We continued this until we returned
+		to the original halfedge we started with. Finally, we normalized the Vector3D sum by dividing by the Euclidean
+		length to compute the area-weighted vertex normals. </li>
+</ul>
+</br>
+</br>
+
+<img src="./images/q3_chunky.png" style="float: left; width: 50%; margin-right: 0%;">
+<img src="./images/q3_smooth.png" style="float: left; width: 50%; margin-right: 0%; margin-bottom: 0.5em;">
+</br>
+</br>
+
+<h2>Task 4</h2>
+<img src="./images/task4_flip_dia.png" style="float: left; width: 50%; margin-right: 0%; margin-bottom: 0.5em;">
+<img src="./images/task4_halfedge_ds.png" style="float: left; width: 50%; margin-right: 0%; margin-bottom: 0.5em;">
+<p1> We just tried to make sure that we were reassigning all the pointers to make sure we didn’t miss any element
+	pointers.</p1>
+<h3> Half-Edge Flip Reassignment</h3>
+<table>
+	<tr>
+		<th>Half edge name</th>
+		<th>Prev next()</th>
+		<th>next()</th>
+		<th>Prev face()</th>
+		<th>face()</th>
+		<th>Prev vertex()</th>
+		<th>vertex()</th>
+	</tr>
+	<tr>
+		<td>h3</td>
+		<td>h4</td>
+		<td>h5</td>
+		<td>f0</td>
+		<td>f1</td>
+		<td>v1</td>
+		<td>v3</td>
+	</tr>
+	<tr>
+		<td>h4</td>
+		<td>h5</td>
+		<td>h0</td>
+		<td>f0</td>
+		<td>f0</td>
+		<td>v0</td>
+		<td>v0</td>
+	</tr>
+	<tr>
+		<td>h5</td>
+		<td>h3</td>
+		<td>h1</td>
+		<td>f0</td>
+		<td>f1</td>
+		<td>v2</td>
+		<td>v2</td>
+	</tr>
+	<tr>
+		<td>h0</td>
+		<td>h1</td>
+		<td>h2</td>
+		<td>f1</td>
+		<td>f0</td>
+		<td>v0</td>
+		<td>v2</td>
+	</tr>
+	<tr>
+		<td>h1</td>
+		<td>h2</td>
+		<td>h3</td>
+		<td>f1</td>
+		<td>f1</td>
+		<td>v1</td>
+		<td>v1</td>
+	</tr>
+	<tr>
+		<td>h2</td>
+		<td>h0</td>
+		<td>h4</td>
+		<td>f1</td>
+		<td>f0</td>
+		<td>v3</td>
+		<td>v3</td>
+	</tr>
+</table>
+<h3> Face Reassignment</h3>
+<table>
+	<tr>
+		<th>Face name</th>
+		<th>Prev halfedge()</th>
+		<th>halfedge()</th>
+	</tr>
+	<tr>
+		<td>f0</td>
+		<td>Face of h0 or h1 or h4</td>
+		<td>h0</td>
+	</tr>
+	<tr>
+		<td>f1</td>
+		<td>Face of h1 or h3 of h5</td>
+		<td>h3</td>
+	</tr>
+</table>
+<h3> Vertex Half-Edge Reassignment</h3>
+<table>
+	<tr>
+		<th>Vertex</th>
+		<th>Prev halfedge()</th>
+		<th>halfedge()</th>
+	</tr>
+	<tr>
+		<td>v0</td>
+		<td>h0 or h4 or h7</td>
+		<td>h4</td>
+	</tr>
+	<tr>
+		<td>v1</td>
+		<td>h1 of h3 or h9</td>
+		<td>h1</td>
+	</tr>
+	<tr>
+		<td>v2</td>
+		<td>h5 or h8</td>
+		<td>h0</td>
+	</tr>
+	<tr>
+		<td>v3</td>
+		<td>h2 or h8</td>
+		<td>h3</td>
+	</tr>
+</table>
+
+<h2>Task 5</h2>
+<img src="./images/q5-dia.png" style="float: left; width: 80%; margin-right: 10%;margin-left: 10%;">
+
+<h3> Half-Edge Split Reassignment</h3>
+<table>
+	<tr>
+		<th>Half edge name</th>
+		<th>Prev next()</th>
+		<th>next()</th>
+		<th>Prev face()</th>
+		<th>face()</th>
+		<th>Prev vertex()</th>
+		<th>vertex())</th>
+	</tr>
+	<tr>
+		<th>h3</th>
+		<th>h4</th>
+		<th>h4</th>
+		<th>f1</th>
+		<th>f1</th>
+		<th>v1</th>
+		<th style="color:red;">m</th>
+	</tr>
+	<tr>
+		<th>h4</th>
+		<th>h5</th>
+		<th style="color:red;">h11</th>
+		<th>f1</th>
+		<th>f1</th>
+		<th>v0</th>
+		<th>v2</th>
+	</tr>
+	<tr>
+		<th style="color:red;">h11</th>
+		<th>-</th>
+		<th>h3</th>
+		<th>-</th>
+		<th>f1</th>
+		<th>-</th>
+		<th>v2</th>
+	</tr>
+	<tr>
+		<th>h5</th>
+		<th>h3</th>
+		<th style="color:red;">h12</th>
+		<th>f1</th>
+		<th style="color:red;">f3</th>
+		<th>v2</th>
+		<th>v2</th>
+	</tr>
+	<tr>
+		<th style="color:red;">h12</th>
+		<th>-</th>
+		<th style="color:red;">h13</th>
+		<th>-</th>
+		<th style="color:red;">f3</th>
+		<th>-</th>
+		<th>v1</th>
+	</tr>
+	<tr>
+		<th style="color:red;">h13</th>
+		<th>-</th>
+		<th>h5</th>
+		<th>-</th>
+		<th style="color:red;">f3</th>
+		<th>-</th>
+		<th style="color:red;">m</th>
+	</tr>
+	<tr>
+		<th>h0</th>
+		<th>h1</th>
+		<th style="color:red;">h10</th>
+		<th>f0</th>
+		<th>f0</th>
+		<th>v0</th>
+		<th>v0</th>
+	</tr>
+	<tr>
+		<th style="color:red;">h10</th>
+		<th>-</th>
+		<th>h2</th>
+		<th>-</th>
+		<th>f0</th>
+		<th>-</th>
+		<th style="color:red;">m</th>
+	</tr>
+	<tr>
+		<th>h2</th>
+		<th>h0</th>
+		<th>h0</th>
+		<th>f0</th>
+		<th>f0</th>
+		<th>v3</th>
+		<th>v3</th>
+	</tr>
+	<tr>
+		<th>h1</th>
+		<th>h2</th>
+		<th>h15</th>
+		<th>f0</th>
+		<th style="color:red;">f2</th>
+		<th>v1</th>
+		<th>v1</th>
+	</tr>
+	<tr>
+		<th style="color:red;">h15</th>
+		<th>-</th>
+		<th>h14</th>
+		<th>-</th>
+		<th style="color:red;">f2</th>
+		<th>-</th>
+		<th>v3</th>
+	</tr>
+	<tr>
+		<th style="color:red;">h14</th>
+		<th>-</th>
+		<th>h1</th>
+		<th>-</th>
+		<th style="color:red;">f2</th>
+		<th>-</th>
+		<th style="color:red;">m</th>
+	</tr>
+
+
+
+</table>
+<br>
+<br>
+<p1> Similar to task 4, we drew a diagram of the triangle before the edge split and labeled all the mesh elements. We
+	then had another diagram representing the triangle after the edge split and we relabelled all the corresponding mesh
+	elements and added new hash elements also (3 new edges, 6 new half edges, 1 new vertex, 2 new faces). Finally we
+	reassigned pointers and created new pointes to reflect the triangle diagram after edge split.</p1>
+<br>
+<br>
+<img src="./images/task5_before.png" style="float: left; width: 33%;">
+<img src="./images/task5_splits.png" style="float: left; width: 34%;">
+<img src="./images/task5_split+flip.png" style="float: left; width: 33%;">
+<br>
+<br>
+<p1>:)</p1>
+<h2>Task 6</h2>
+<p1>To implement loop subdivision we first calculated the new weighted positions of all the vertices. For old vertices
+	we calculated the new position using: 3/8 * (A + B) + 1/8 * (C + D) where A, B, C, and D are the 4 nearest vertices
+	of the newly created vertex, and we stored the new position in the newPosition variable of vertex. For new vertices
+	we used: (1 - n * u) * original_position + u * original_neighbor_position_sum where n is the degree of the old vertex,
+	u is ⅜ if n is 3 and 3/(8n) otherwise, and we stored the new position in the newPosition variable of the edge that the
+	new vertex will be on. We then marked all the current vertices and edges as old to differentiate from the newly
+	created mesh elements in the later steps. We then iterated through all of the original edges in the mesh and split
+	them if they weren’t boundary edges. We marked the newly created edges and vertex as new, and updated
+		the new vertex\’s newPosition to be the calculated new position stored on the edge this vertex was created on.
+		We then flipped the newly created edges that are connected to both a new and old vertex. Finally, we iterated
+		through all the vertices of the mesh (including the newly created ones), updated its position to be the weighted
+		average of the points around it (from the value stored in newPosition), and changed all the newly created mesh
+		elements to be old as to not mess further loop subdivision steps. To debug, we tried rendering without updating
+		the vertex positions to make sure that the loop subdivision was working properly. We also rendered only updating
+		old vertices’ positions and only updating new vertices’ positions, which helped us figure out that we had an error
+		in how we were updating the newly created vertices.</p1>
+<p1>After loop subdivision, some of the flatter faces rise up more while the sharp corners get smoothed out. Since we
+	are updating vertices to be a weighted average of its neighboring positions, each vertex gets pulled closer together.
+	For the cube mesh, it means the corners will get pulled inwards and become more smooth. For the torus mesh, the sharp
+	edges and corners are also smoothed out as the vertices get pulled closer to the inside.</p1>
+<br>
+<h3>flat to sharper</h3>
+<img src="./images/task6_cube_flat0.png" style="float: right; width: 80%; margin-right: 10%; margin-left: 10%">
+<img src="./images/task6_cube_flat1.png" style="float: right; width: 80%; margin-right: 10%; margin-left: 10%">
+<p1>back down to a little smoother)</p1>
+<img src="./images/task6_cube_flat0.png" style="float: right; width: 80%; margin-right: 10%; margin-left: 10%">
+<h3>sharp corner that gets smoothed out</h3>
+<img src="./images/task6_cube_sharp0.png" style="float: right; width: 80%; margin-right: 10%; margin-left: 10%">
+<img src="./images/task6_cube_sharp1.png" style="float: right; width: 80%; margin-right: 10%; margin-left: 10%">
+<h3>torus mesh</h3>
+<img src="./images/task6_torus0.png" style="float: right; width: 80%; margin-right: 10%; margin-left: 10%">
+<img src="./images/task6_torus1.png" style="float: right; width: 80%; margin-right: 10%; margin-left: 10%">
+<img src="./images/task6_torus2.png" style="float: right; width: 80%; margin-right: 10%; margin-left: 10%">
+<img src="./images/task6_torus3.png"style="float: right; width: 80%; margin-right: 10%; margin-left: 10%">
+<h3>Presplitting the boundary edges of the cube seems to reduce the effect of smoothing over the corners. </h3>
+<img src="./images/task6_cube_presplit0.png" style="float: right; width: 80%; margin-right: 10%; margin-left: 10%">
+<img src="./images/task6_cube_presplit1.png" style="float: right; width: 80%; margin-right: 10%; margin-left: 10%">
+<img src="./images/task6_cube_presplit2.png" style="float: right; width: 80%; margin-right: 10%; margin-left: 10%">
+<img src="./images/task6_cube_presplit3.png" style="float: right; width: 80%; margin-right: 10%; margin-left: 10%">
+<br>
+<h3>If we split an edge on every face of the cube, it subdivides symmetrically. By splitting more edges, it adds more
+	sharp edges and corners to the cube that way when we loop subdivide, when the sharp edges are pulled in, it’s pulled
+	in more evenly throughout the cube, making the subdivisions more symmetric than before.</h3>
+<img src="./images/task6_sym0.png" style="float: right; width: 80%; margin-right: 10%; margin-left: 10%">
+<img src="./images/task6_sym1.png" style="float: right; width: 80%; margin-right: 10%; margin-left: 10%">
+<img src="./images/task6_sym3.png" style="float: right; width: 80%; margin-right: 10%; margin-left: 10%">
+<p1>next two are same loop subdivision but different angles</p1>
+<img src="./images/task6_sym4.png" style="float: right; width: 80%; margin-right: 10%; margin-left: 10%">
+<img src="./images/task6_sym5.png" style="float: right; width: 80%; margin-right: 10%; margin-left: 10%">
+
+
+
+<body>
+
+</body>
 </html>
