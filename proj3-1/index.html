@@ -1,7 +1,280 @@
 <html>
-	<head>
-	</head>
-	<body>
-		Project 3-1 here
+<head>
+	<style>
+		table {
+			font-family: arial, sans-serif;
+			border-collapse: collapse;
+			width: 100%;
+		}
+
+		td, th {
+			border: 1px solid #dddddd;
+			text-align: left;
+			padding: 8px;
+		}
+
+		tr:nth-child(even) {
+			background-color: #dddddd;
+		}
+	</style>
+</head>
+<h2>P 3-1</h2>
+
+
+
+
+<h2>Task 1</h2>
+	<h5> Walk through the ray generation and primitive intersection parts of the rendering pipeline.</h5>
+	<p1>For Part 1, we utilized Casteljau algorithm which in essence, linearly interpolates with recursive subdivision. On
+		our passed in vector, t applies linear interpolation to all immediate neighbor pairs. Once the lerp is calculated for
+		these pairs we will return the new vector<\Vector2D> which will be the size of the previous vector minus one. We will
+		recurse and once again on the new vector and apply our previous methodology with the new points. This recursive
+		algorithm is continued until it hits the base case of the vector<\Vector2D> size is 1, indicating our control
+		point has been found.
+	</p1>
+	<h5> Explain the triangle intersection algorithm you implemented in your own words. </h5>
+	<p1>For the triangle intersection, we set the ray equation to equal the plane equation, for this case the triangle
+		equation, and we set them to equal to each other to solve for the time of intersection between the 2. The ray
+		equation we used is o + td where o is the ray’s origin, d is the ray’s direction, and t is unknown. For the
+		triangle equation, we used (1 - b1 - b2)P0 + b1P1 + b2P2, where (1 - b1 - b2), b1, and b2 are the triangle’s
+		barycentric coordinates, and P0, P1, and P2 are the triangle’s vertices. Using the Möller Trumbore algorithm,
+		we’re able to solve for the unknowns: t, b1, and b2. If time of intersection was not in between the ray’s valid
+		time range (t < ray’s min_t or t > ray’s max_t) or if the barycentric coordinates are invalid (b1, b2 < 0 or b1,
+		b2 > 1 or b1 + b2 > 1), then there isn’t an intersection between the ray and triangle. Otherwise given t, we are
+		able to find the point of intersection between the ray and triangle using the ray equation.
+	</p1>
+	<img src="./images/pt1math.png" style="width: 70%" >
+	<img src="./images/pt1_3.png" >
+	<img src="./images/p1_4.png" >
+
+
+<h2>Task 2</h2>
+	<h5> Walk through your BVH construction algorithm. Explain the heuristic you chose for picking the splitting point.</h5>
+	<p1> For the BVH construction algorithm, we first computed the bounding box of a list of primitives and initialized a new BVHNode with that bounding box (starter code). We also set the start and end of the BVHNode using the given start and end primitive iterators. If the number of primitives in the bounding box was less than max_leaf_size, we just returned the node right away. Otherwise, it meant that the BVHNode was an interior node and not a leaf node so we had to split it. We first found the longest axis of the bounding box and also computed the average of the sum of all the primitives’ centroids in the box. We used the average centroid’s value on the longest axis as the splitting point. Using the partition method, we partitioned the primitives into 2 sets based on the splitting point. Finally, we recursively called construct_bvh on the set containing primitives less than the splitting point and stored that as the BVHNode’s right child and recursively called construct_bvh on the set containing primitives greater than the splitting point, storing that in the BVHNode’s left child.
+	</p1>
+	<h5>Show images with normal shading for a few large .dae files that you can only render with BVH acceleration. </h5>
+	<img src="./images/CBlucy.png" >
+	<img src="./images/CBdragon.png" >
+	<img src="./images/wall-e.png" >
+	<img src="./images/CBbunny.png" >
+	<h5> Compare rendering times on a few scenes with moderately complex geometries with and without BVH acceleration. Present your results in a one-paragraph analysis.
+	</h5>
+	<p1> When rendering bunny_microfacet_cu, the rendering time with BVH acceleration had a significant speedup than without. Rendering the scene took 33696 primitives (0.0013 seconds without BVH acceleration and 0.0233 seconds with BVH acceleration) and both involved tracing around the same number of rays. However, with BVH acceleration ended up taking 0.1322 seconds to render while without BVH acceleration took 190.1359 seconds. When rendering the cow, there was also significant speedup with BVH acceleration than without. Rendering the scene took 5856 primitives (0.002 seconds without BVH acceleration and 0.0026 seconds with BVH acceleration) and both also involved tracing around the same number of rays. However, with BVH acceleration ended up taking 0.0026 seconds to render while without took 46.8458 seconds.</p1>
+
+	<table>
+	<tr>
+		<th>bunny_microfacet_cu</th>
+		<th># of primitives</th>
+		<th>time to build BVH (sec)</th>
+		<th># of traced rays</th>
+		<th>speed (million rays/ sec)</th>
+		<th># of intersection tests / ray</th>
+		<th>total render time (sec)</th>
+	</tr>
+	<tr>
+		<td>w/o BVH</td>
+		<td>33696</td>
+		<td>0.0013</td>
+		<td>454830</td>
+		<td>0.0024</td>
+		<td>7266.1211</td>
+		<td>190.1359</td>
+	</tr>
+	<tr>
+		<td>w/ BVH</td>
+		<td>33696</td>
+		<td>0.0233</td>
+		<td>439156</td>
+		<td>3.3223</td>
+		<td>2.6990</td>
+		<td>0.0233</td>
+	</tr>
+</table>
+
+	<table>
+	<tr>
+		<th>cow</th>
+		<th># of primitives</th>
+		<th>time to build BVH (sec)</th>
+		<th># of traced rays</th>
+		<th>speed (million rays/ sec)</th>
+		<th># of intersection tests / ray</th>
+		<th>total render time (sec)</th>
+	</tr>
+	<tr>
+		<td>w/o BVH</td>
+		<td>5856</td>
+		<td>0.0002</td>
+		<td>476943</td>
+		<td>0.0102</td>
+		<td>2115.8678</td>
+		<td>46.8458</td>
+	</tr>
+	<tr>
+		<td>w/ BVH</td>
+		<td>5856</td>
+		<td>0.0026</td>
+		<td>459646</td>
+		<td>1.5057</td>
+		<td>10.3419</td>
+		<td>0.0026</td>
+	</tr>
+</table>
+
+	<p1>bunny_microfacet_cu </p1>
+	<br>
+	<p1>without bvh</p1>
+	<img src="./images/bunny_microfacet_cu_slow.png">
+	<br>
+	<p1>with bvh</p1>
+	<img src="./images/bunny_microfacet_cu_fast.png">
+	<br>
+	<p1>cow</p1>
+	<br>
+	<p1>without bvh</p1>
+	<img src="./images/cow_slow.png">
+	<br>
+	<p1>with bvh</p1>
+	<img src="./images/cow_fast.png">
+	<br>
+
+
+<h2>Task 3</h2>
+	<h5>Walk through both implementations of the direct lighting function.</h5>
+	<p1>In direct lighting by sampling uniformly in a hemisphere, we first randomly sample a ray in the hemisphere. If the sampled ray has an intersection with an object, we calculate the radiance at that intersection point and add it to L_out. We repeat this num_samples times where num_samples = the number of light sources in the scene * ns_area_light and return the average L_out. In direct lighting by importance sampling, we iterate through all the light sources in the scene instead of sampling uniformly. Given a light source, we want to first sample the lightIf that light source is a point light source.</p1>
+
+	<h5>Show some images rendered with both implementations of the direct lighting function.</h5>
+	<table>
+	<tr>
+		<th>uniform hemisphere</th>
+		<th>important sampling</th>
+
+	<tr>
+		<td><img src="./images/bunny_1_16_HEMI.png"></td>
+		<td><img src="./images/bunny_1_16_IMP.png"></td>
+	</tr>
+	<tr>
+		<td><img src="./images/spheres_1_16_HEMI.png"></td>
+		<td><img src="./images/spheres_1_16_IMP.png"></td>
+	</tr>
+</table>
+
+	<h5>Compare the results between uniform hemisphere sampling and lighting sampling in a one-paragraph analysis.</h5>
+	<table>
+	<tr>
+		<th>CBbunny</th>
+		<th>1 light ray, 1 sample per pixel</th>
+		<th>4 light ray, 1 sample per pixel</th>
+		<th>16 light ray, 1 sample per pixel</th>
+		<th>64 light ray, 1 sample per pixel</th>
+	</tr>
+	<tr>
+		<td>'</td>
+		<td><img src="./images/bunny_1_1.png" style="width: 100%"></td>
+		<td><img src="./images/bunny_1_4.png"style="width: 100%"></td>
+		<td><img src="./images/bunny_1_16.png"style="width: 100%"></td>
+		<td><img src="./images/bunny_1_64.png"style="width: 100%"></td>
+	</tr>
+</table>
+
+<h2>Task 4</h2>
+<p1> For the indirect lighting function, we first sample a ray. We also calculate a random value equivalent to flipping a coin. If the sampled ray intersects with the scene and the random value is less than our continuous pdf, we calculate the light coming from the hit point, but continue to calculate the next radiance on the hitpoint from bouncing after the light ray. We account for the light bouncing by doing recursive calls until the ray doesn’t intersect the scene, we reach our max ray depth, or the random value is less than our continuous pdf.
+</p1>
+	<h5>Show some images rendered with global (direct and indirect) illumination. Use 1024 samples per pixel.</h5>
+	<h6>spheres_1024_global</h6>
+	<h7> ./pathtracer -t 8 -s 1024 -l 16 -m 5 -r 480 360 -f spheres_1024.png ../dae/sky/CBspheres_lambertian.dae</h7>
+	<img src="./images/spheres_1024_global.png"style="width: 70%">
+<br>
+	<h6>bench_1024_global</h6>
+<h7> ./pathtracer -t 8 -s 1024 -l 16 -m 5 -r 480 360 -f bench_1024.png ../../dae/sky/bench.dae</h7>
+	<img src="./images/bench_1024_global.png"style="width: 70%">
+<br>
+<br>
+<table>
+	<tr>
+		<th>direct</th>
+		<th>indirect</th>
+	</tr>
+	<tr>
+		<td>bench_1024_direct</td>
+		<td>bench_1024_indirect</td>
+	</tr>
+	<tr>
+		<td><img src="./images/bench_1024_direct.png"></td>
+		<td><img src="./images/bench_1024_indirect.png"></td>
+	</tr>
+</table>
+ <h5> For CBbunny.dae, compare rendered views with max_ray_depth set to 0, 1, 2, 3, and 100 (the -m flag). Use 1024 samples per pixel.</h5>
+<table>
+	<tr>
+		<th>bunny_0_1024</th>
+		<th>bunny_1_1024</th>
+	</tr>
+	<tr>
+		<td><img src="./images/bunny_0_1024.png"></td>
+		<td><img src="./images/bunny_1_1024.png"></td>
+	</tr>
+	<tr>
+		<th>bunny_2_1024</th>
+		<th>bunny_3_1024</th>
+	</tr>
+	<tr>
+		<td><img src="./images/bunny_2_1024.png"></td>
+		<td><img src="./images/bunny_3_1024.png"></td>
+	</tr>
+	<tr>
+		<th>bunny_100_1024</th>
+	</tr>
+	<tr>
+		<td><img src="./images/bunny_100_1024.png"></td>
+	</tr>
+</table>
+<h6>Pick one scene and compare rendered views with various sample-per-pixel rates, including at least 1, 2, 4, 8, 16, 64, and 1024. Use 4 light rays.</h6>
+<table>
+	<tr>
+		<th>1 Pixel Sample</th>
+		<th>2 Pixel Samples</th>
+	</tr>
+	<tr>
+		<td><img src="./images/spheres 1.png"></td>
+		<td><img src="./images/spheres 2.png"></td>
+	</tr>
+	<tr>
+		<th>4 Pixel Sample</th>
+		<th>8 Pixel Samples</th>
+	</tr>
+	<tr>
+		<td><img src="./images/spheres 4.png"></td>
+		<td><img src="./images/spheres 8.png"></td>
+	</tr>
+	<tr>
+		<th>16 Pixel Sample</th>
+		<th>64 Pixel Samples</th>
+	</tr>
+	<tr>
+		<td><img src="./images/spheres 16.png"></td>
+		<td><img src="./images/spheres 64.png"></td>
+	</tr>
+	<tr>
+		<th>1024 Pixel Sample</th>
+	</tr>
+	<tr>
+		<td><img src="./images/spheres 1024.png"></td>
+	</tr>
+
+</table>
+
+
+<h2>Task 5</h2>
+	<h5>Walk through both implementations of the adaptive sampling.</h5>
+	<p1> In adaptive sampling we are generally following the normal raytrace pixel algorithm. However, we included a stopping point and kept track of distribution values for each pixel. Some pixels  converge faster with low sampling rates (usually when it is in a flat area with few surrounding pixels and is bright), while other pixels  need more samples to get rid of noise. We can use a general understanding of statistics to obtain  95% of the possible samples covered and stop sampling when it reaches its correct value. This is done using the standard deviation and mean of previous values to come up with the stopping point (95%).  We only check this every 32 pixels since it is costly to calculate this every time.</p1>
+	<h5>render</h5>
+	<img src="./images/bunny_rate .png"style="width: 100%">
+	<img src="./images/bunny .png"style="width: 100%">
+	<p1>Blue pixels converge faster since there is a lower sampling rate (uniform relative to neighbors). While Red takes more time to converge since it has a higher sampling rate, this appears more on the sides of an object since they have a larger  disparity in distance. This also appears in the divots and general areas where you would expect shadows on the object since they require more light bounce calculating to get correct.
+	We noticed our image is slightly off, this may be due to some incorrect sampling rate on light rays in previous parts.</p1>
+<h2>Collaboration</h2>
+<p1> We worked together on pt 1 and pt 2 by pushing code when either of us figured out a bug. Due to family issues, Jessica completed part 3 and some of 4 alone. Kaiona did the entirety of 5 alone to make up for that.
+As for the write up, Jessica did the majority with of the writing while Kaiona organized the html, did some writing parts and rendered photos.</p1>
 	</body>
 </html>
